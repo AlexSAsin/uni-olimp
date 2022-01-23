@@ -1,0 +1,18 @@
+{
+  "name": "proxy-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "env-cmd -f ./.env.development node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "env-cmd": "^10.1.0",
+    "http-proxy": "^1.18.1"
+  }
+}

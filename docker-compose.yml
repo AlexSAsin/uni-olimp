@@ -1,0 +1,28 @@
+version: "3.3"
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: unidb
+      POSTGRES_PASSWORD: password
+  back:
+    build: ./uni-back
+    restart: always
+    depends_on:
+      - db
+  front:
+    build: ./uni-front
+    restart: always
+  proxy:
+    build: ./proxy-server
+    restart: always
+    ports:
+      - 4002:4000
+    environment:
+      - BACK_URL=http://back:3000
+      - FRONT_URL=http://front:3000
+    depends_on:
+      - back
+      - front
+

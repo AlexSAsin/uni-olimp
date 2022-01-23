@@ -1,0 +1,14 @@
+# Common
+/.git
+/.idea
+/.vscode
+/.env.development
+
+# Docker files
+/Dockerfile
+/.dockerignore
+
+# Build artifacts
+/build
+/node_modules
+/npm-debug.log

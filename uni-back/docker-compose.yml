@@ -1,0 +1,11 @@
+# Dev postgress
+version: '3.3'
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_DB: unidb
+      POSTGRES_PASSWORD: password

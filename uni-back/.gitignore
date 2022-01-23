@@ -1,0 +1,17 @@
+# Secrets
+# /.env
+
+# Build artifacts
+/build
+/node_modules
+/npm-debug.log
+
+# 4VSCode
+/.vscode
+
+# dev
+/sqls
+change_commits_info.sh
+
+# openapis
+/src/openapis

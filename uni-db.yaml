@@ -1,0 +1,801 @@
+openapi: 3.0.3
+info:
+  title: uni-db
+  version: '1.0'
+  description: api for uni db test skill site
+  contact:
+    name: Author Ilya
+    email: deposha322@mail.ru
+servers:
+  - url: 'http://localhost:3001/api'
+    description: dev
+  - url: 'http://localhost:3000/api'
+    description: prod
+tags:
+  - name: authorization
+  - name: const
+  - name: posts
+  - name: comments
+  - name: alerts
+  - name: errors
+paths:
+  /authorization/login:
+    post:
+      summary: Login as user with get jwt token
+      description: 'get user''s jwt token '
+      operationId: post-authorization-login
+      tags:
+        - authorization
+      requestBody:
+        description: Authorizate
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAuthorization'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                title: JWTToken
+                type: object
+                description: jwt token for requests
+                properties:
+                  token:
+                    type: string
+                    description: jwt token
+                    example: very.long.string
+                required:
+                  - token
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/BadRequestError'
+  /posts:
+    get:
+      summary: Get posts list for view
+      description: get posts for view
+      operationId: get-posts
+      tags:
+        - posts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostGetView'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+      parameters:
+        - schema:
+            type: string
+            default: 'true'
+            enum:
+              - 'null'
+              - 'true'
+              - 'false'
+          in: query
+          name: verificationResult
+      security:
+        - BearerAuth: []
+    post:
+      summary: Post new post
+      description: post new post
+      operationId: post-posts
+      tags:
+        - posts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                required:
+                  - id
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                withoutVerification:
+                  type: boolean
+                  default: false
+              required:
+                - title
+                - content
+      parameters: []
+      security:
+        - BearerAuth: []
+  /posts/manage:
+    get:
+      summary: Get posts list for manage
+      description: get posts for manage
+      operationId: get-posts-manage
+      tags:
+        - posts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostGetManage'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+      parameters:
+        - schema:
+            type: string
+            default: 'true'
+            enum:
+              - 'null'
+              - 'true'
+              - 'false'
+          in: query
+          name: verificationResult
+      security:
+        - BearerAuth: []
+  '/posts/{id}/verification':
+    parameters:
+      - schema:
+          type: number
+          minimum: 1
+        name: id
+        in: path
+        required: true
+        description: post id
+    patch:
+      description: set verification result for post
+      operationId: get-posts-id-validated
+      summary: Verdict for post
+      tags:
+        - posts
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                result:
+                  type: boolean
+                reason:
+                  type: string
+              required:
+                - result
+      security:
+        - BearerAuth: []
+  '/posts/{id}/like':
+    parameters:
+      - schema:
+          type: number
+          minimum: 1
+        name: id
+        in: path
+        required: true
+        description: post id
+    post:
+      summary: Set like for post
+      description: new or toggle/replace old like for post
+      operationId: post-posts-id-like
+      tags:
+        - posts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentSelfLikeValue:
+                    type: number
+                  currentSumLikes:
+                    type: number
+                required:
+                  - currentSelfLikeValue
+                  - currentSumLikes
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: number
+                  enum:
+                    - -1
+                    - 1
+              required:
+                - value
+      security:
+        - BearerAuth: []
+  '/posts/{id}/incrementView':
+    parameters:
+      - schema:
+          type: number
+          minimum: 1
+        name: id
+        in: path
+        required: true
+        description: post id
+    post:
+      summary: Increment view for post
+      description: new or toggle/replace old like for post
+      operationId: post-posts-id-increment-veiw
+      tags:
+        - posts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currentViewsCount:
+                    type: number
+                required:
+                  - currentViewsCount
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - BearerAuth: []
+  '/posts/{id}/comments':
+    parameters:
+      - schema:
+          type: number
+          minimum: 1
+        name: id
+        in: path
+        required: true
+        description: post id
+    get:
+      summary: Get comments list of post
+      description: get post by id
+      operationId: get-posts-coments
+      tags:
+        - comments
+        - posts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommentsGet'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - BearerAuth: []
+    post:
+      summary: Post new comment for post
+      description: Post new comment for post
+      operationId: post-posts-id-comments
+      tags:
+        - comments
+        - posts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentsGet'
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                parentCommentId:
+                  type: number
+              required:
+                - content
+  '/comments/{id}/childs':
+    parameters:
+      - schema:
+          type: number
+          minimum: 1
+        name: id
+        in: path
+        required: true
+        description: comment id
+    get:
+      description: get post by id
+      summary: Get child comments for comment
+      operationId: get-comments-id-dchilds
+      tags:
+        - comments
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommentsGet'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - BearerAuth: []
+  '/comments/{id}':
+    parameters:
+      - schema:
+          type: number
+          minimum: 1
+        name: id
+        in: path
+        required: true
+        description: comment id
+    delete:
+      description: Delete comment by id
+      summary: Delete comment by id
+      operationId: delete-comments-id
+      tags:
+        - comments
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - BearerAuth: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: reason
+          required: true
+  /alerts:
+    get:
+      summary: Get all user's allert
+      description: Get all user's allert
+      operationId: get-alerts
+      tags:
+        - alerts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AlertsGet'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+      security:
+        - BearerAuth: []
+  '/alerts/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: alert id
+    patch:
+      summary: Delete an alert by id
+      description: Delete an alert by id
+      operationId: patch-alerts-id
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      tags:
+        - alerts
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                viewed:
+                  type: boolean
+  /alerts/count:
+    get:
+      summary: Get current user's allerts count
+      description: Get current user's allerts count
+      tags:
+        - alerts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: number
+                required:
+                  - count
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      operationId: get-alerts-count
+      security:
+        - BearerAuth: []
+  /roles:
+    get:
+      summary: Get list of all users roles
+      description: Get all roles of users
+      operationId: get-user-roles
+      tags:
+        - const
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    roleName:
+                      type: string
+                  required:
+                    - roleName
+    parameters: []
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundError:
+      description: Not
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenError:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadRequestError:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ErrorResponse:
+      title: DetailOfError
+      type: object
+      description: object with detail of error
+      x-tags:
+        - error
+      properties:
+        status:
+          type: number
+        message:
+          type: string
+          description: error detail
+        success:
+          type: boolean
+        reason:
+          type: string
+      required:
+        - status
+        - message
+        - success
+        - reason
+    UserAuthorization:
+      title: UserAutrorization
+      type: object
+      description: User date to authorizate
+      properties:
+        login:
+          type: string
+          minLength: 3
+          default: admin
+        password:
+          type: string
+          minLength: 3
+          default: admin
+      required:
+        - login
+        - password
+      x-tags:
+        - authorization
+    PostGetManage:
+      title: PostGetManage
+      type: object
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        content:
+          type: string
+        owner:
+          $ref: '#/components/schemas/Owner'
+        updatedAt:
+          type: string
+        latsVerification:
+          $ref: '#/components/schemas/LastVerification'
+      required:
+        - id
+        - title
+        - content
+        - owner
+        - updatedAt
+        - latsVerification
+      x-tags:
+        - posts
+    PostGetView:
+      title: PostGetView
+      type: object
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        content:
+          type: string
+        owner:
+          $ref: '#/components/schemas/Owner'
+        updatedAt:
+          type: string
+        latsVerification:
+          $ref: '#/components/schemas/LastVerification'
+        likesSum:
+          type: number
+        commentsCount:
+          type: number
+        viewsCount:
+          type: number
+      required:
+        - id
+        - title
+        - content
+        - owner
+        - updatedAt
+        - latsVerification
+        - likesSum
+        - commentsCount
+        - viewsCount
+      x-tags:
+        - posts
+    CommentsGet:
+      title: CommentsGet
+      type: object
+      properties:
+        id:
+          type: number
+        postId:
+          type: number
+        owner:
+          $ref: '#/components/schemas/Owner'
+        parentCommentId:
+          type: number
+          nullable: true
+        content:
+          type: string
+        updatedAt:
+          type: string
+        childsCommentsCount:
+          type: number
+      required:
+        - id
+        - postId
+        - owner
+        - parentCommentId
+        - content
+        - updatedAt
+        - childsCommentsCount
+      x-tags:
+        - comments
+    Owner:
+      title: Owner
+      type: object
+      properties:
+        id:
+          type: number
+        login:
+          type: string
+      required:
+        - id
+        - login
+      x-tags:
+        - users
+    LastVerification:
+      title: LastVerification
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: number
+        result:
+          type: boolean
+        reason:
+          type: string
+      required:
+        - id
+        - result
+        - reason
+      x-tags:
+        - posts
+    AlertsGet:
+      title: AlertsGet
+      type: object
+      x-tags:
+        - alerts
+      properties:
+        id:
+          type: number
+        level:
+          type: string
+          enum:
+            - error
+            - success
+            - info
+        updatedAt:
+          type: string
+        title:
+          type: string
+        post:
+          $ref: '#/components/schemas/PostAlertGet'
+        comment1:
+          $ref: '#/components/schemas/CommentAlertGet'
+        comment2:
+          $ref: '#/components/schemas/CommentAlertGet'
+        reason:
+          type: string
+          nullable: true
+      required:
+        - id
+        - level
+        - updatedAt
+        - title
+        - post
+        - comment1
+        - comment2
+        - reason
+    PostAlertGet:
+      title: PostAlertGet
+      type: object
+      x-tags:
+        - alerts
+        - posts
+      nullable: true
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        content:
+          type: string
+        owner:
+          $ref: '#/components/schemas/Owner'
+        updatedAt:
+          type: string
+      required:
+        - id
+        - title
+        - content
+        - owner
+        - updatedAt
+    CommentAlertGet:
+      title: CommentAlertGet
+      type: object
+      x-tags:
+        - alerts
+        - comments
+      nullable: true
+      properties:
+        id:
+          type: number
+        owner:
+          $ref: '#/components/schemas/Owner'
+        content:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - owner
+        - content
+        - updatedAt
